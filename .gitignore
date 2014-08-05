@@ -25,3 +25,4 @@ hs_err_pid*
 !/controllers/web/spark-core-2.0.0.jar
 !/controllers/web/servlet-api-3.0.pre4.jar
 !/controllers/web/slf4j-log4j12-1.6.1.jar
+/router/info
