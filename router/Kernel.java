@@ -1,27 +1,54 @@
+/*
+ * The MIT License
+ *
+ * Copyright 2014 Giovanna Pezzi <contact@giovannapezzi.info>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * @author Giovanna Pezzi <contact@giovannapezzi.info>
+ */
+
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.regex.*;
-import org.omg.CORBA.INTERNAL;
 
+/**
+ * Kernel
+ * 
+ * This class is able to listen for text messages sent through socket. If a text message matches a recognized command
+ * the class executes the corresponding method and gives back eventual results under the form of another text message
+ * written through socket.
+ * 
+ * @author Giovanna Pezzi <contact@giovannapezzi.info>
+ */
 class Kernel {
     private static ServerSocket server;
     private static Socket socket;
     private static BufferedReader readerOfDataFromClient;
     private static BufferedWriter writerOfDataForClient;
     
-    private static int currentTemperature;
-    private static int currentHigherTemperatureLimit;
-    private static int servoType;
-    private static int currentSpeed;
-    private static int currentLowerPositionLimit;
-    private static int currentHigherPositionLimit;
-    private static int currentLowerVoltageLimit;
-    private static int currentHigherVoltageLimit;
-    private static int currentServoLowerTorque;
-    private static int currentServoHigherTorque;
+    private static ServoModule servoModule;
     
     public static void main(String[] args) throws IOException, InterruptedException {
+        servoModule = new ServoModule();
         while(true) {
             try {
                 listenForMessages();
@@ -44,17 +71,29 @@ class Kernel {
         
         String message;
         while (true) {
-            message = readerOfDataFromClient.readLine();
-            message = message.replaceAll("[^a-zA-Z0-9 ]", "");
-            if (!message.equals("")) {
-                interpretMessage(message);
+            try {
+                message = readerOfDataFromClient.readLine();
+                message = message.replaceAll("[^a-zA-Z0-9 ]", "").trim();
+                if (!message.equals("")) {
+                    try {
+                        interpretMessage(message);
+                    } catch (IllegalStateException exception) {
+                        writerOfDataForClient.write("ERROR: THERE ARE NOT SERVOS TO OPERATE ON\r\n");
+                        writerOfDataForClient.flush();
+                    } catch(IndexOutOfBoundsException exception) {
+                        writerOfDataForClient.write("ERROR: THE SPECIFIED SERVO DOES NOT EXIST\r\n");
+                        writerOfDataForClient.flush();
+                    }
+                }
+            } catch (SocketException e) {
+                socket.close();
+                server.close();                
+                listenForMessages();
             }
         }
     }
     
-    private static void interpretMessage(String message) throws IOException {
-        System.out.println(message);
-        
+    private static void interpretMessage(String message) throws IOException {      
         String availableCommandsListingRegexPattern = "^LIST AVAILABLE COMMANDS$";
         if (message.matches(availableCommandsListingRegexPattern)) {
             listAvailableCommands(); 
@@ -64,6 +103,12 @@ class Kernel {
         String availableServosListingRegexPattern = "^LIST AVAILABLE SERVOS$";
         if (message.matches(availableServosListingRegexPattern)) {
             listAvailableServos(); 
+            return;
+        }
+        
+        String availableServosScanningRegexPattern = "^SCAN FOR AVAILABLE SERVOS$";
+        if (message.matches(availableServosScanningRegexPattern)) {
+            scanServos(); 
             return;
         }        
         
@@ -232,7 +277,8 @@ class Kernel {
     
     private static void listAvailableCommands() throws IOException {
         writerOfDataForClient.write("  LIST AVAILABLE COMMANDS\r\n");
-        writerOfDataForClient.write("  LIST AVAILABLE SERVOS\r\n    1) NO SERVO\r\n    2) SERVO IDS: a, b, b, ...\r\n");
+        writerOfDataForClient.write("  SCAN FOR AVAILABLE SERVOS\r\n");
+        writerOfDataForClient.write("  LIST AVAILABLE SERVOS\r\n");
         writerOfDataForClient.write("  GET SERVO S POSITION\r\n");
         writerOfDataForClient.write("  SET SERVO S POSITION TO P\r\n");
         writerOfDataForClient.write("  GET SERVO S TYPE\r\n");
@@ -257,162 +303,113 @@ class Kernel {
     }
     
     private static void listAvailableServos() throws IOException {
-        writerOfDataForClient.write("  THERE ARE " + ServoModule.getAvailableServos().size() + " SERVOS\r\n");
+        writerOfDataForClient.write("  THERE ARE " + servoModule.getAvailableServos().size() + " SERVOS\r\n");
         writerOfDataForClient.flush();
     }
     
+    private static void scanServos() throws IOException {
+        servoModule.scanForAvailableServos();
+        writerOfDataForClient.write("  SERVOS HAVE BEEN SCANNED\r\n");
+        writerOfDataForClient.flush();
+    }    
+    
     private static void getServoPosition(int servoId) throws IOException {
-        writerOfDataForClient.write(ServoModule.getServoPosition(servoId) + "\r\n");
+        writerOfDataForClient.write(servoModule.getServoPosition(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoPosition(int servoId, int goalPosition) throws IOException {
-        ServoModule.setServoPosition(servoId, goalPosition);       
+        servoModule.setServoPosition(servoId, goalPosition);       
     }
     
     private static void getServoTemperature(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentTemperature = DynamixelModule.readWord(servoId, 43);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "CURRENT TEMPERATURE"+ " " + currentTemperature + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "CURRENT TEMPERATURE"+ " " + servoModule.getServoTemperature(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void getServoHigherTemperatureLimit(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentHigherTemperatureLimit = DynamixelModule.readWord(servoId, 11);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "CURRENT HIGHER TEMPERATURE LIMIT"+ " " + currentHigherTemperatureLimit + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "CURRENT HIGHER TEMPERATURE LIMIT"+ " " + servoModule.getServoHigherTemperatureLimit(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }    
     
     private static void setServoHigherTemperatureLimit(int servoId, int servoHigherTemperatureLimit) throws IOException {
-		// DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-		// DynamixelModule.writeWord(servoId, 11, servoHigherTemperatureLimit);
-		// DynamixelModule.terminate();        
+		servoModule.setServoHigherTemperatureLimit(servoId, servoHigherTemperatureLimit);   
     }    
     
     private static void getServoType(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // servoType = DynamixelModule.readWord(servoId, 1); // Codice controllo da modificare
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "TYPE"+ " " + servoType + "\r\n");
+        String message = "SERVO" + servoId + "TYPE" + " ";
+        switch (servoModule.getServoType(servoId)) {
+            case ServoModule.SERVO_TYPE_DYNAMIXEL:
+                message += "DYNAMIXEL\r\n";
+            case ServoModule.SERVO_TYPE_HERKULEX:
+                message += "HERKULEX\r\n";
+            case ServoModule.SERVO_TYPE_SMS_DRIVER:
+                message += "SMS DRIVER\r\n";                
+        }
+        writerOfDataForClient.write(message);
         writerOfDataForClient.flush();
     }
     
     private static void getServoSpeed(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentSpeed = DynamixelModule.readWord(servoId, 38); 
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "SPEED"+ " " + currentSpeed + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "SPEED"+ " " + servoModule.getServoSpeed(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoSpeed(int servoId, int servoSpeed) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 38, servoSpeed);
-		// DynamixelModule.terminate();
+        servoModule.setServoSpeed(servoId, servoSpeed);
     }
     
     private static void getServoLowerPositionLimit(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentLowerPositionLimit = DynamixelModule.readWord(servoId, 36); 
-		// DynamixelModule.terminate();        
-        writerOfDataForClient.write("SERVO" + servoId + "LOWER POSITION LIMIT"+ " " + currentLowerPositionLimit + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "LOWER POSITION LIMIT"+ " " + servoModule.getServoLowerPositionLimit(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoLowerPositionLimit(int servoId, int servoLowerPositionLimit) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 36, servoLowerPositionLimit);
-		// DynamixelModule.terminate();
+        servoModule.setServoLowerPositionLimit(servoId, servoLowerPositionLimit);
     }
     
     private static void getServoHigherPositionLimit(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentHigherPositionLimit = DynamixelModule.readWord(servoId, 37);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "HIGHER POSITION LIMIT"+ " " + currentHigherPositionLimit + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "HIGHER POSITION LIMIT"+ " " + servoModule.getServoHigherPositionLimit(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoHigherPositionLimit(int servoId, int servoHigherPositionLimit ) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 37, servoHigherPositionLimit);
-		// DynamixelModule.terminate();
+        servoModule.setServoHigherPositionLimit(servoId, servoHigherPositionLimit );
     }
     
     private static void getServoLowerVoltageLimit(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentLowerVoltageLimit = DynamixelModule.readWord(servoId, 12);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "LOWER VOLTAGE LIMIT"+ " " + currentLowerVoltageLimit + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "LOWER VOLTAGE LIMIT"+ " " + servoModule.getServoLowerVoltageLimit(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoLowerVoltageLimit(int servoId, int servoLowerVoltageLimit) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 12, servoLowerVoltageLimit);
-		// DynamixelModule.terminate();
+        servoModule.setServoLowerVoltageLimit(servoId, servoLowerVoltageLimit);
     }
     
     private static void getServoHigherVoltageLimit(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentHigherVoltageLimit = DynamixelModule.readWord(servoId, 13);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "LOWER VOLTAGE LIMIT"+ " " + currentHigherVoltageLimit + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "LOWER VOLTAGE LIMIT"+ " " + servoModule.getServoHigherVoltageLimit(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoHigherVoltageLimit(int servoId, int servoHigherVoltageLimit) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 13, servoHigherVoltageLimit);
-		// DynamixelModule.terminate();
+        servoModule.setServoHigherVoltageLimit(servoId, servoHigherVoltageLimit);
     }
     
     private static void getServoLowerTorque(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentServoLowerTorque = DynamixelModule.readWord(servoId, 14);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "LOWER TORQUE"+ " " + currentServoLowerTorque + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "LOWER TORQUE"+ " " +  servoModule.getServoLowerTorque(servoId)+ "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoLowerTorque(int servoId, int servoLowerTorque) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 14, servoLowerTorque);
-		// DynamixelModule.terminate();
+        servoModule.setServoLowerTorque(servoId, servoLowerTorque);
     }
     
     private static void getServoHigherTorque(int servoId) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // currentServoHigherTorque = DynamixelModule.readWord(servoId, 15);
-		// DynamixelModule.terminate();
-        writerOfDataForClient.write("SERVO" + servoId + "HIGHER TORQUE"+ " " + currentServoHigherTorque + "\r\n");
+        writerOfDataForClient.write("SERVO" + servoId + "HIGHER TORQUE" + " " + servoModule.getServoHigherTorque(servoId) + "\r\n");
         writerOfDataForClient.flush();
     }
     
     private static void setServoHigherTorque(int servoId, int servoHigherTorque) throws IOException {
-        // DynamixelModule.initialize();
-		// DynamixelModule.setBaud(1);
-        // DynamixelModule.writeWord(servoId, 15, servoHigherTorque);
-		// DynamixelModule.terminate();
+        servoModule.setServoHigherTorque(servoId, servoHigherTorque);
     }
 }

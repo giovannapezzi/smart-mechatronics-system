@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2014 Giovanna.
+ * Copyright 2014 Giovanna Pezzi <contact@giovannapezzi.info>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,8 +23,11 @@
  */
 
 /**
- *
- * @author Giovanna
+ * HerkulexModule
+ * 
+ * Class that implements methods of the Module interface so that they can work with Herkulex servos.
+ * 
+ * @author Giovanna Pezzi <contact@giovannapezzi.info>
  */
 public class HerkulexModule implements Module {
     @Override
@@ -34,6 +37,91 @@ public class HerkulexModule implements Module {
     
     @Override
     public void setServoPosition(int servoId, int position) {
-        System.out.println("sono la classe di controllo per gli herkulex");
+
+    }
+    
+    @Override
+    public int getServoTemperature(int servoId) {
+        return 0;
+    }
+    
+    @Override
+    public int getServoHigherTemperatureLimit(int servoId) {
+        return 0;
+    }
+    
+    @Override
+    public void setServoHigherTemperatureLimit(int servoId, int servoHigherTemperatureLimit) {
+
+    }   
+       
+    @Override
+    public int getServoSpeed(int servoId) {
+        return 0;
+    } 
+  
+    @Override
+    public void setServoSpeed(int servoId, int servoSpeed) {
+        
+    }
+
+    @Override
+    public int getServoLowerPositionLimit(int servoId) {
+        return 0;
+    }
+       
+    @Override
+    public void setServoLowerPositionLimit(int servoId, int servoLowerPositionLimit) {
+
+    }
+    
+    @Override
+    public int getServoHigherPositionLimit(int servoId) {
+        return 0;
+    }
+    
+    @Override
+    public void setServoHigherPositionLimit(int servoId, int servoHigherPositionLimit ) {
+
+    }
+    
+    @Override
+    public int getServoLowerVoltageLimit(int servoId){
+        return 0;       
+    }
+    
+    @Override
+    public void setServoLowerVoltageLimit(int servoId, int servoLowerVoltageLimit){
+
+    }
+    
+    @Override
+    public int getServoHigherVoltageLimit(int servoId){
+        return 0;
+    }
+    
+    @Override
+    public void setServoHigherVoltageLimit(int servoId, int servoHigherVoltageLimit){
+
+    }
+    
+    @Override
+    public int getServoLowerTorque(int servoId){
+        return 0;
+    }
+    
+    @Override
+    public void setServoLowerTorque(int servoId, int servoLowerTorque){
+
+    }
+    
+    @Override
+    public int getServoHigherTorque(int servoId){
+        return 0;
+    }
+    
+    @Override
+    public void setServoHigherTorque(int servoId, int servoHigherTorque){
+
     }
 }

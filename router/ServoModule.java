@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2014 Giovanna.
+ * Copyright 2014 Giovanna Pezzi <contact@giovannapezzi.info>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,30 +25,35 @@
 import java.util.ArrayList;
 
 /**
- *
- * @author Giovanna
+ * ServoModule
+ * 
+ * This class is able to scan available servos. Is is also able to decide which module must be used to execute the 
+ * requested method in compatibility with the type of the specified servo. 
+ * 
+ * 
+ * @author Giovanna Pezzi <contact@giovannapezzi.info>
  */
-public class ServoModule {
+public class ServoModule implements Module {
     public static final int SERVO_TYPE_DYNAMIXEL = 0;
     public static final int SERVO_TYPE_SMS_DRIVER = 1;
     public static final int SERVO_TYPE_HERKULEX = 2;
     
-    private static final DynamixelModule dynamixelModule;
-    private static final SmsDriverModule smsDriverModule;
-    private static final HerkulexModule herkulexModule;
+    private DynamixelModule dynamixelModule;
+    private SmsDriverModule smsDriverModule;
+    private HerkulexModule herkulexModule;
     
-    private static Module module;
+    private Module module;
     
-    private static final ArrayList<Integer> servos;
+    private ArrayList<Integer> servos;
     
-    static {
+    public ServoModule() {
         dynamixelModule = new DynamixelModule();
         smsDriverModule = new SmsDriverModule();
         herkulexModule = new HerkulexModule();
         servos = new ArrayList<>();
     }
     
-    private static void detectAvailableServos() {
+    public void scanForAvailableServos() {
         servos.add(SERVO_TYPE_DYNAMIXEL);
         servos.add(SERVO_TYPE_DYNAMIXEL);
         servos.add(SERVO_TYPE_DYNAMIXEL);
@@ -59,13 +64,21 @@ public class ServoModule {
         servos.add(SERVO_TYPE_HERKULEX);
         servos.add(SERVO_TYPE_SMS_DRIVER);
         servos.add(SERVO_TYPE_SMS_DRIVER);
-    } 
-    
-    private static int getServoType(int servoId) {
-        return servos.get(servoId);
     }
     
-    private static void setModule(int servoType) {
+    public ArrayList<Integer> getAvailableServos() {
+        return servos;
+    }    
+    
+    public int getServoType(int servoId) {
+        if (!servos.isEmpty()) {
+            return servos.get(servoId);
+        } else {
+            throw new IllegalStateException();
+        }
+    } 
+    
+    private void setModule(int servoType) {
         switch (servoType) {
             case SERVO_TYPE_DYNAMIXEL:
                 module = dynamixelModule;
@@ -77,20 +90,119 @@ public class ServoModule {
                 module = herkulexModule;
                 break;                
         }
-    }
-    
-    public static ArrayList<Integer> getAvailableServos() {
-        detectAvailableServos();
-        return servos;
-    }
+    }    
 
-    public static int getServoPosition(int servoId) {
+    @Override
+    public int getServoPosition(int servoId) {
         setModule(getServoType(servoId));
         return module.getServoPosition(servoId);
     }
     
-    public static void setServoPosition(int servoId, int position) {
+    @Override
+    public void setServoPosition(int servoId, int position) {
         setModule(getServoType(servoId));
         module.setServoPosition(servoId, position);
     }
-}
+    
+    @Override
+    public int getServoTemperature(int servoId) {
+        setModule(getServoType(servoId));
+        return module.getServoTemperature(servoId);
+    }
+    
+    @Override
+    public int getServoHigherTemperatureLimit(int servoId) {
+        setModule(getServoType(servoId));
+        return module.getServoHigherTemperatureLimit(servoId);
+    }
+    
+    @Override
+    public void setServoHigherTemperatureLimit(int servoId, int servoHigherTemperatureLimit) {
+        setModule(getServoType(servoId));
+        module.setServoHigherTemperatureLimit(servoId, servoHigherTemperatureLimit);
+    }
+    
+    @Override
+    public int getServoSpeed(int servoId) {
+        setModule(getServoType(servoId));
+        return module.getServoSpeed(servoId);
+    }
+ 
+    @Override
+    public void setServoSpeed(int servoId, int servoSpeed) {
+        setModule(getServoType(servoId));
+        module.setServoSpeed(servoId, servoSpeed);
+    }
+    
+    @Override
+    public int getServoLowerPositionLimit(int servoId) {
+        setModule(getServoType(servoId));
+        return module.getServoLowerPositionLimit(servoId);
+    } 
+      
+    @Override
+    public void setServoLowerPositionLimit(int servoId, int servoLowerPositionLimit) {
+        setModule(getServoType(servoId));
+        module.setServoLowerPositionLimit(servoId, servoLowerPositionLimit);
+    }
+    
+    @Override
+    public int getServoHigherPositionLimit(int servoId) {
+        setModule(getServoType(servoId));
+        return module.getServoLowerPositionLimit(servoId);
+    }
+    
+    @Override
+    public void setServoHigherPositionLimit(int servoId, int servoHigherPositionLimit ) {
+        setModule(getServoType(servoId));
+        module.setServoLowerPositionLimit(servoId, servoHigherPositionLimit);
+    }
+    
+    @Override
+    public int getServoLowerVoltageLimit(int servoId){
+        setModule(getServoType(servoId));
+        return module. getServoLowerVoltageLimit(servoId);       
+    }
+    
+    @Override
+    public void setServoLowerVoltageLimit(int servoId, int servoLowerVoltageLimit){
+        setModule(getServoType(servoId));
+        module.setServoLowerVoltageLimit(servoId, servoLowerVoltageLimit);
+    }
+    
+    @Override
+    public int getServoHigherVoltageLimit(int servoId){
+        setModule(getServoType(servoId));
+        return module.getServoHigherVoltageLimit(servoId);
+    }
+    
+    @Override
+    public void setServoHigherVoltageLimit(int servoId, int servoHigherVoltageLimit){
+        setModule(getServoType(servoId));
+        module.setServoHigherVoltageLimit(servoId, servoHigherVoltageLimit);
+    }
+    
+    @Override
+    public int getServoLowerTorque(int servoId){
+        setModule(getServoType(servoId));
+        return module.getServoLowerTorque(servoId);
+    }
+    
+    @Override
+    public void setServoLowerTorque(int servoId, int servoLowerTorque){
+        setModule(getServoType(servoId));
+        module.setServoLowerTorque(servoId, servoLowerTorque);
+    }
+    
+    @Override
+    public int getServoHigherTorque(int servoId){
+        setModule(getServoType(servoId));
+        return module.getServoHigherTorque(servoId);
+    }
+    
+    @Override
+    public void setServoHigherTorque(int servoId, int servoHigherTorque){
+        setModule(getServoType(servoId));
+        module.setServoHigherTorque(servoId, servoHigherTorque);
+    }
+} 
