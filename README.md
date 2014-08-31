@@ -1,6 +1,6 @@
-**Smart Mechatronics System (SMS)**
+## Smart Mechatronics System (SMS)
 
-- An integrated solution to allow Mechatronics developers to simply interact with Servos and Sensors, of different types and companies, as well as to simulate them. SMS is based on the socket messages model and every component in the project is runnable on separated hardware that communicates with others through the Ethernet or Wi-Fi networks. SMS is thought to be compatible with different hardware thanks to its architecture of Modules and Drivers that allows to develop specific systems, that are able to interconnect with external proprietary solutions or embedded firmwares for the most famous prototyping boards, while completely abstracting this activity from the user point of view.
+An integrated solution to allow Mechatronics developers to simply interact with Servos and Sensors, of different types and companies, as well as to simulate them. SMS is based on the socket messages model and every component in the project is runnable on separated hardware that communicates with others through the Ethernet or Wi-Fi networks. SMS is thought to be compatible with different hardware thanks to its architecture of Modules and Drivers that allows to develop specific systems, that are able to interconnect with external proprietary solutions or embedded firmwares for the most famous prototyping boards, while completely abstracting this activity from the user point of view.
 
 
 ## Milestone 1
