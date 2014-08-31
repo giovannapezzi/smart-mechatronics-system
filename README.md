@@ -22,7 +22,7 @@ SMS is thought to be compatible with different hardware thanks to its architectu
 
 6) Initialization of the Simulator Component (a system to see Servos and Sensors in action without necessarely having them).
 
-7) Adding support of sensors acquisition.
+7) Adding support for sensors acquisition.
 
 8) Initialization of the first Drivers for prototyping boards like Arduino, Raspberry Pi and PCDuino.
 
