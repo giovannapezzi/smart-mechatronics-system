@@ -10,7 +10,7 @@ SMS is thought to be compatible with different hardware thanks to its architectu
 
 ## Milestone 1
 
-1) Finishing the Router component with integration of a new dynamixel JNI compatible dll that supports a Java class under the project namespace.
+1) Finishing the Router component with integration of a new dynamixel JNI compatible dll that supports a Java class under the project namespace as well as supporting other servo types.
 
 2) Writing documentation for the usage of the system under the GitHub Wiki and standard README.md files as well as more Example Controllers.
 
@@ -21,6 +21,10 @@ SMS is thought to be compatible with different hardware thanks to its architectu
 5) Initialization of the Web controller component (a system for manual control of servos and sensors through a convenient web application that is runnable from embedded devices with few resources).
 
 6) Initialization of the Simulator Component (a system to see Servos and Sensors in action without necessarely having them).
+
+7) Adding support of sensors acquisition.
+
+8) Initialization of the first Drivers for prototyping boards like Arduino, Raspberry Pi and PCDuino.
 
 
 
