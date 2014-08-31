@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+import java.util.ArrayList;
+
 /**
  * DynamixelModule
  * 
@@ -31,7 +33,31 @@
  * @author Giovanna Pezzi <contact@giovannapezzi.info>
  */
 class DynamixelModule implements Module
-{
+{    
+    @Override
+    public ArrayList<Servo> scanForAvailableServos() {
+        ArrayList<Servo> arrayList; 
+        arrayList = new ArrayList<>();
+        Servo servo;
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_DYNAMIXEL);
+        servo.setId(134);
+        arrayList.add(servo);
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_DYNAMIXEL);
+        servo.setId(12);
+        arrayList.add(servo);
+
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_DYNAMIXEL);
+        servo.setId(202);
+        arrayList.add(servo);
+        
+        return arrayList;
+    } 
+    
     @Override
     public int getServoPosition(int servoId) {
 		dynamixel_jni.initialize();

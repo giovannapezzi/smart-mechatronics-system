@@ -304,6 +304,9 @@ class Kernel {
     
     private static void listAvailableServos() throws IOException {
         writerOfDataForClient.write("  THERE ARE " + servoModule.getAvailableServos().size() + " SERVOS\r\n");
+        for (int servoIndex = 0; servoIndex < servoModule.getAvailableServos().size(); servoIndex++) {
+            writerOfDataForClient.write("  AT INDEX " + servoIndex + " SERVO ID IS: " + servoModule.getAvailableServos().get(servoIndex).getId() + "\r\n");
+        }
         writerOfDataForClient.flush();
     }
     

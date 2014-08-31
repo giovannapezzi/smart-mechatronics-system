@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+import java.util.ArrayList;
+
 /**
  * Module
  * 
@@ -30,6 +32,8 @@
  * @author Giovanna Pezzi <contact@giovannapezzi.info>
  */
 public interface Module {
+    public ArrayList<Servo> scanForAvailableServos();
+    
     public int getServoPosition(int servoId);
     
     public void setServoPosition(int servoId, int position);

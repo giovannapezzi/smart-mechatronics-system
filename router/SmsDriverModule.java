@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+import java.util.ArrayList;
+
 /**
  * SmsDriverModule
  * 
@@ -31,6 +33,45 @@
  * @author Giovanna Pezzi <contact@giovannapezzi.info>
  */
 public class SmsDriverModule implements Module {
+    @Override
+    public ArrayList<Servo> scanForAvailableServos() {
+        ArrayList<Servo> arrayList; 
+        arrayList = new ArrayList<>();
+        Servo servo;
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(1);
+        arrayList.add(servo);
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(2);
+        arrayList.add(servo);
+
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(3);
+        arrayList.add(servo);
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(4);
+        arrayList.add(servo);
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(5);
+        arrayList.add(servo);
+        
+        servo = new Servo();
+        servo.setType(ServoModule.SERVO_TYPE_SMS_DRIVER);
+        servo.setId(6);
+        arrayList.add(servo);        
+        
+        return arrayList;
+    }
+    
     @Override
     public int getServoPosition(int servoId) {
         return 0;

@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * ServoModule
@@ -35,44 +35,31 @@ import java.util.ArrayList;
  */
 public class ServoModule implements Module {
     public static final int SERVO_TYPE_DYNAMIXEL = 0;
-    public static final int SERVO_TYPE_SMS_DRIVER = 1;
-    public static final int SERVO_TYPE_HERKULEX = 2;
+    public static final int SERVO_TYPE_HERKULEX = 1;    
+    public static final int SERVO_TYPE_SMS_DRIVER = 2;
     
     private DynamixelModule dynamixelModule;
+    private HerkulexModule herkulexModule;    
     private SmsDriverModule smsDriverModule;
-    private HerkulexModule herkulexModule;
     
     private Module module;
     
-    private ArrayList<Integer> servos;
+    private ArrayList<Servo> servos;
     
     public ServoModule() {
         dynamixelModule = new DynamixelModule();
+        herkulexModule = new HerkulexModule();        
         smsDriverModule = new SmsDriverModule();
-        herkulexModule = new HerkulexModule();
         servos = new ArrayList<>();
     }
     
-    public void scanForAvailableServos() {
-        servos.add(SERVO_TYPE_DYNAMIXEL);
-        servos.add(SERVO_TYPE_DYNAMIXEL);
-        servos.add(SERVO_TYPE_DYNAMIXEL);
-        servos.add(SERVO_TYPE_SMS_DRIVER);
-        servos.add(SERVO_TYPE_HERKULEX);
-        servos.add(SERVO_TYPE_HERKULEX);
-        servos.add(SERVO_TYPE_HERKULEX);
-        servos.add(SERVO_TYPE_HERKULEX);
-        servos.add(SERVO_TYPE_SMS_DRIVER);
-        servos.add(SERVO_TYPE_SMS_DRIVER);
-    }
-    
-    public ArrayList<Integer> getAvailableServos() {
+    public ArrayList<Servo> getAvailableServos() {
         return servos;
     }    
     
-    public int getServoType(int servoId) {
+    public int getServoType(int servoIndex) {
         if (!servos.isEmpty()) {
-            return servos.get(servoId);
+            return servos.get(servoIndex).getType();
         } else {
             throw new IllegalStateException();
         }
@@ -83,126 +70,135 @@ public class ServoModule implements Module {
             case SERVO_TYPE_DYNAMIXEL:
                 module = dynamixelModule;
                 break;
-            case SERVO_TYPE_SMS_DRIVER:
-                module = smsDriverModule;
-                break;
             case SERVO_TYPE_HERKULEX:
                 module = herkulexModule;
                 break;                
+            case SERVO_TYPE_SMS_DRIVER:
+                module = smsDriverModule;
+                break;                
         }
+    } 
+    
+    @Override
+    public ArrayList<Servo> scanForAvailableServos() {
+        servos.addAll(dynamixelModule.scanForAvailableServos());
+        servos.addAll(herkulexModule.scanForAvailableServos());
+        servos.addAll(smsDriverModule.scanForAvailableServos());
+        
+        return servos;
     }    
 
     @Override
-    public int getServoPosition(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoPosition(servoId);
+    public int getServoPosition(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoPosition(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoPosition(int servoId, int position) {
-        setModule(getServoType(servoId));
-        module.setServoPosition(servoId, position);
+    public void setServoPosition(int servoIndex, int position) {
+        setModule(getServoType(servoIndex));
+        module.setServoPosition(servos.get(servoIndex).getId(), position);
     }
     
     @Override
-    public int getServoTemperature(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoTemperature(servoId);
+    public int getServoTemperature(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoTemperature(servos.get(servoIndex).getId());
     }
     
     @Override
-    public int getServoHigherTemperatureLimit(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoHigherTemperatureLimit(servoId);
+    public int getServoHigherTemperatureLimit(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoHigherTemperatureLimit(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoHigherTemperatureLimit(int servoId, int servoHigherTemperatureLimit) {
-        setModule(getServoType(servoId));
-        module.setServoHigherTemperatureLimit(servoId, servoHigherTemperatureLimit);
+    public void setServoHigherTemperatureLimit(int servoIndex, int servoHigherTemperatureLimit) {
+        setModule(getServoType(servoIndex));
+        module.setServoHigherTemperatureLimit(servos.get(servoIndex).getId(), servoHigherTemperatureLimit);
     }
     
     @Override
-    public int getServoSpeed(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoSpeed(servoId);
+    public int getServoSpeed(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoSpeed(servos.get(servoIndex).getId());
     }
  
     @Override
-    public void setServoSpeed(int servoId, int servoSpeed) {
-        setModule(getServoType(servoId));
-        module.setServoSpeed(servoId, servoSpeed);
+    public void setServoSpeed(int servoIndex, int servoSpeed) {
+        setModule(getServoType(servoIndex));
+        module.setServoSpeed(servos.get(servoIndex).getId(), servoSpeed);
     }
     
     @Override
-    public int getServoLowerPositionLimit(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoLowerPositionLimit(servoId);
+    public int getServoLowerPositionLimit(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoLowerPositionLimit(servos.get(servoIndex).getId());
     } 
       
     @Override
-    public void setServoLowerPositionLimit(int servoId, int servoLowerPositionLimit) {
-        setModule(getServoType(servoId));
-        module.setServoLowerPositionLimit(servoId, servoLowerPositionLimit);
+    public void setServoLowerPositionLimit(int servoIndex, int servoLowerPositionLimit) {
+        setModule(getServoType(servoIndex));
+        module.setServoLowerPositionLimit(servos.get(servoIndex).getId(), servoLowerPositionLimit);
     }
     
     @Override
-    public int getServoHigherPositionLimit(int servoId) {
-        setModule(getServoType(servoId));
-        return module.getServoLowerPositionLimit(servoId);
+    public int getServoHigherPositionLimit(int servoIndex) {
+        setModule(getServoType(servoIndex));
+        return module.getServoLowerPositionLimit(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoHigherPositionLimit(int servoId, int servoHigherPositionLimit ) {
-        setModule(getServoType(servoId));
-        module.setServoLowerPositionLimit(servoId, servoHigherPositionLimit);
+    public void setServoHigherPositionLimit(int servoIndex, int servoHigherPositionLimit ) {
+        setModule(getServoType(servoIndex));
+        module.setServoLowerPositionLimit(servos.get(servoIndex).getId(), servoHigherPositionLimit);
     }
     
     @Override
-    public int getServoLowerVoltageLimit(int servoId){
-        setModule(getServoType(servoId));
-        return module. getServoLowerVoltageLimit(servoId);       
+    public int getServoLowerVoltageLimit(int servoIndex){
+        setModule(getServoType(servoIndex));
+        return module. getServoLowerVoltageLimit(servos.get(servoIndex).getId());       
     }
     
     @Override
-    public void setServoLowerVoltageLimit(int servoId, int servoLowerVoltageLimit){
-        setModule(getServoType(servoId));
-        module.setServoLowerVoltageLimit(servoId, servoLowerVoltageLimit);
+    public void setServoLowerVoltageLimit(int servoIndex, int servoLowerVoltageLimit){
+        setModule(getServoType(servoIndex));
+        module.setServoLowerVoltageLimit(servos.get(servoIndex).getId(), servoLowerVoltageLimit);
     }
     
     @Override
-    public int getServoHigherVoltageLimit(int servoId){
-        setModule(getServoType(servoId));
-        return module.getServoHigherVoltageLimit(servoId);
+    public int getServoHigherVoltageLimit(int servoIndex){
+        setModule(getServoType(servoIndex));
+        return module.getServoHigherVoltageLimit(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoHigherVoltageLimit(int servoId, int servoHigherVoltageLimit){
-        setModule(getServoType(servoId));
-        module.setServoHigherVoltageLimit(servoId, servoHigherVoltageLimit);
+    public void setServoHigherVoltageLimit(int servoIndex, int servoHigherVoltageLimit){
+        setModule(getServoType(servoIndex));
+        module.setServoHigherVoltageLimit(servos.get(servoIndex).getId(), servoHigherVoltageLimit);
     }
     
     @Override
-    public int getServoLowerTorque(int servoId){
-        setModule(getServoType(servoId));
-        return module.getServoLowerTorque(servoId);
+    public int getServoLowerTorque(int servoIndex){
+        setModule(getServoType(servoIndex));
+        return module.getServoLowerTorque(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoLowerTorque(int servoId, int servoLowerTorque){
-        setModule(getServoType(servoId));
-        module.setServoLowerTorque(servoId, servoLowerTorque);
+    public void setServoLowerTorque(int servoIndex, int servoLowerTorque){
+        setModule(getServoType(servoIndex));
+        module.setServoLowerTorque(servos.get(servoIndex).getId(), servoLowerTorque);
     }
     
     @Override
-    public int getServoHigherTorque(int servoId){
-        setModule(getServoType(servoId));
-        return module.getServoHigherTorque(servoId);
+    public int getServoHigherTorque(int servoIndex){
+        setModule(getServoType(servoIndex));
+        return module.getServoHigherTorque(servos.get(servoIndex).getId());
     }
     
     @Override
-    public void setServoHigherTorque(int servoId, int servoHigherTorque){
-        setModule(getServoType(servoId));
-        module.setServoHigherTorque(servoId, servoHigherTorque);
+    public void setServoHigherTorque(int servoIndex, int servoHigherTorque){
+        setModule(getServoType(servoIndex));
+        module.setServoHigherTorque(servos.get(servoIndex).getId(), servoHigherTorque);
     }
 } 
