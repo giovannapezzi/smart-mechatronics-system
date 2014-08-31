@@ -11,3 +11,7 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 /router/info
+/controllers/custom/info/giovannapezzi/projects/sms/controllers/custom/Model.java
+/controllers/desktop/info/giovannapezzi/projects/sms/controllers/desktop/Controller.java
+/controllers/web/info/giovannapezzi/projects/sms/controllers/web/Controller.java
+/simulator/info/giovannapezzi/projects/sms/simulator/Prova3D.java
